@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "npx tsx index.ts",
-    "nodemon": "nodemon --watch 'api/**' --ext 'ts,json' --exec 'vite-node api/index.ts'"
+    "nodemon": "nodemon --watch 'api/**' --ext 'ts,json' --exec 'vite-node api/index.ts'",
+    "build": "vite build --production"
   },
   "keywords": [],
   "author": "",
@@ -35,6 +36,7 @@
     "puppeteer-real-browser": "^1.4.2",
     "ts-jest": "^29.4.0",
     "user-agents": "^1.1.626",
+    "vite": "^7.1.1",
     "vite-node": "^3.2.4",
     "xlsx": "^0.18.5"
   },
