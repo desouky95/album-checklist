@@ -13,7 +13,7 @@ app.post("/submit", async (_req, _res) => {
     const url = _req.body.url;
     const file = await LastStickerScrapper.start(url, "album", {
       grid: true,
-      clearCache: false,
+      clearCache: true,
       // isBrowser: true,
       // withAuth: true,
     });
