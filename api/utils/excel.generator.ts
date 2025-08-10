@@ -5,7 +5,7 @@ import {
   Workbook,
 } from "exceljs";
 import { CardResult } from "./laststicker.scrapper";
-import { imageSizeFromFile } from "image-size/fromFile";
+// import { imageSizeFromFile } from "image-size/fromFile";
 import * as fs from "fs";
 type Sheets = {
   Cards?: string[][];

@@ -1,6 +1,6 @@
 import { program } from "commander";
 import { select } from "@inquirer/prompts";
-import { readdir, readdirSync } from "node:fs";
+import { readdirSync } from "node:fs";
 
 const getScripts = async () => {
   try {
@@ -39,4 +39,5 @@ export type ScriptArgs = {
   withAuth?: boolean;
   grid?: boolean;
   single?: boolean;
+  isBrowser?: boolean;
 };

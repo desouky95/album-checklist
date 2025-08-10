@@ -1,4 +1,4 @@
-import { LastStickerScrapper } from "../utils/laststicker.scrapper";
+import { LastStickerScrapper } from "../api/utils/laststicker.scrapper";
 
 const script = async () => {
   console.log("Pixar Fest 2021 script is not implemented yet.");

@@ -1,9 +1,9 @@
 import * as Cheerio from "cheerio";
 import { existsSync, mkdirSync } from "fs";
-import { ScriptArgs } from "..";
+import { ScriptArgs } from "../..";
 import * as fs from "fs";
 import puppeteer from "puppeteer-extra";
-// import puppeteer from "puppeteer";
+
 import axios from "axios";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import AdblockerPlugin from "puppeteer-extra-plugin-adblocker";
@@ -14,7 +14,15 @@ import { setTimeout as wait } from "timers/promises";
 import ora, { Ora, spinners } from "ora";
 import Table from "cli-table";
 import { Excel } from "./excel.generator";
+import UserAgent from "user-agents";
+import { connect } from "puppeteer-real-browser";
+import path from "path";
 
+const stealth = StealthPlugin();
+
+stealth.enabledEvasions.delete("iframe.contentWindow");
+stealth.enabledEvasions.delete("media.codecs");
+stealth.enabledEvasions.delete("user-agent-override");
 puppeteer.use(StealthPlugin());
 puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
 
@@ -71,7 +79,7 @@ export class LastStickerScrapper {
   private albumYear!: string;
   private publisher!: string;
   private spinner!: Ora;
-  private excel!: Excel;
+  excel!: Excel;
   private constructor(url: string, outputName: string, args: ScriptArgs) {
     this.url = url;
     this.args = args;
@@ -116,14 +124,58 @@ export class LastStickerScrapper {
     this.spinner.start("Scraping data...");
     const browser = await puppeteer.launch({
       args: ["--window-size=1920,1080", "--no-sandbox"],
+      // headless: false,
+      targetFilter: (target) => {
+        if (target.type() === "browser") return true;
+        return !!target.url();
+      },
     });
-    await browser.setCookie(...this.cookies);
 
-    const page = await browser.newPage();
-    await page.setUserAgent(
-      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36"
-    );
+    // const page = await browser.newPage();
+
+    const page = (await browser.pages())[0];
+    if (this.args.withAuth) await browser.setCookie(...this.cookies);
+
+    page.setViewport({
+      width: 1920 + Math.floor(Math.random() * 100),
+      height: 3000 + Math.floor(Math.random() * 100),
+      deviceScaleFactor: 1,
+      hasTouch: false,
+      isLandscape: false,
+      isMobile: false,
+    });
+    // await page.setUserAgent(new UserAgent().random().toString());
+    // await page.setUserAgent(
+    //   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.79 Safari/537.36"
+    // );
+    await page.setJavaScriptEnabled(true);
+    page.setDefaultNavigationTimeout(0);
+    await page.setRequestInterception(true);
+    page.on("request", (req) => {
+      if (
+        req.resourceType() == "stylesheet" ||
+        req.resourceType() == "font" ||
+        req.resourceType() == "image"
+      ) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
     await page.goto(this.url, { waitUntil: "load" });
+
+    try {
+      const hasCloudflare = await page.$$eval("a", (el) => {
+        return !!el.find((el) => el.innerText === "Cloudflare");
+      });
+      if (hasCloudflare) {
+        await new Promise((r) => setTimeout(r, 5000));
+        await page.waitForSelector("#content > h1", {
+          visible: true,
+          timeout: 60000,
+        });
+      }
+    } catch (error) {}
 
     const rows = await page.$$eval("table#checklist tbody tr", (el) => {
       return el.map((el) => ({ html: el.innerHTML, el }));
@@ -150,6 +202,7 @@ export class LastStickerScrapper {
         };
       })
     );
+    // console.log(await page.content());
     this.albumName = await page.$eval("#content > h1", (p) => p.innerText);
     this.albumYear = await page.$eval(".big_text > span", (p) =>
       p.innerText.split(":")[1].trim()
@@ -344,6 +397,13 @@ export class LastStickerScrapper {
       withGrid: this.args.grid || false,
     });
 
+    const outputName = this.args.grid
+      ? `${this.outputName}-grid`
+      : this.outputName;
+
+    const file = fs.readFileSync(`./output/${outputName}.xlsx`);
+
     this.spinner.succeed("Output generated successfully.");
+    return file;
   }
 }

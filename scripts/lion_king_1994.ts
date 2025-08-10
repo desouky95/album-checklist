@@ -1,4 +1,4 @@
-import { LastStickerScrapper } from "../utils/laststicker.scrapper";
+import { LastStickerScrapper } from "../api/utils/laststicker.scrapper";
 import { ScriptArgs } from "..";
 
 const script = async (args: ScriptArgs) => {
