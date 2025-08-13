@@ -1,5 +1,5 @@
 import { ScriptArgs } from "..";
-import { LastStickerScrapper } from "../api/utils/laststicker.scrapper";
+import { LastStickerScrapper } from "../utils/laststicker.scrapper";
 
 const script = async (args: ScriptArgs) => {
   await LastStickerScrapper.start(

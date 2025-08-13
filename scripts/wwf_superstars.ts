@@ -1,9 +1,9 @@
 import { ScriptArgs } from "..";
-import { LastStickerScrapper } from "../api/utils/laststicker.scrapper";
+import { LastStickerScrapper } from "../utils/laststicker.scrapper";
 
 const script = async (args: ScriptArgs) => {
   await LastStickerScrapper.start(
-    "https://www.laststicker.com/cards/euroflash_wwf_superstars/",
+    "https://www.laststicker.com/cards/coop_il_giro_del_mondo/",
     "wwf_superstars",
     args
   );

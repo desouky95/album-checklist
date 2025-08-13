@@ -6,7 +6,8 @@
   "scripts": {
     "start": "npx tsx index.ts",
     "nodemon": "nodemon --watch 'api/**' --ext 'ts,json' --exec 'vite-node api/index.ts'",
-    "build": "vite build --production"
+    "build": "npx tsc",
+    "run:build": "node dist/api/index.js"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +20,7 @@
     "axios": "^1.9.0",
     "body-parser": "^2.2.0",
     "cheerio": "^1.0.0",
+    "chrome-cookies-secure": "^3.0.0",
     "cli-progress": "^3.12.0",
     "cli-table": "^0.3.11",
     "commander": "^14.0.0",
@@ -26,6 +28,7 @@
     "express": "^5.1.0",
     "image-size": "^2.0.2",
     "jest": "^30.0.0",
+    "keytar": "^7.9.0",
     "ora": "^8.2.0",
     "pdfjs": "^2.5.3",
     "pdfjs-dist": "^5.3.31",
@@ -35,6 +38,7 @@
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "puppeteer-real-browser": "^1.4.2",
     "ts-jest": "^29.4.0",
+    "typescript": "^5.9.2",
     "user-agents": "^1.1.626",
     "vite": "^7.1.1",
     "vite-node": "^3.2.4",

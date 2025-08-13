@@ -1,6 +1,7 @@
 import { program } from "commander";
 import { select } from "@inquirer/prompts";
 import { readdirSync } from "node:fs";
+import { exit } from "node:process";
 
 const getScripts = async () => {
   try {
@@ -28,6 +29,7 @@ program
       await selectedScript(args);
     } catch (error) {
       console.error(`Failed to run script ${script}:`, error);
+      exit(1)
     }
   });
 

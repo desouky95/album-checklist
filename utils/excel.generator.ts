@@ -164,16 +164,20 @@ export class Excel<T extends CardResult = CardResult> {
       {
         name: "Collection",
         countFormula: `=_xlfn.COUNTIF(E2:E${this.data.length + 1},">0")`,
-        textFormula: `=_xlfn.TEXTJOIN(",",TRUE,_xlfn.FILTER(A2:A${this.data.length + 1},E2:E${this.data.length + 1} > 0))`,
+        textFormula: `=_xlfn.TEXTJOIN(",",TRUE,_xlfn.FILTER(A2:A${
+          this.data.length + 1
+        },E2:E${this.data.length + 1} > 0))`,
       },
       {
         name: "Duplicates",
-        countFormula: `=_xlfn.SUM(E2:E${this.data.length + 1})`,
+        countFormula: `=_xlfn.SUMIF(E2:E${
+          this.data.length + 1
+        },">1") - _xlfn.COUNTIF(E2:E${this.data.length + 1},">1")`,
         textFormula: `=_xlfn.TEXTJOIN(",",TRUE,F2:F${this.data.length + 1})`,
       },
       {
         name: "Unique",
-        countFormula: `=_xlfn.COUNTA(E2:E${this.data.length + 1},">1")`,
+        countFormula: `=_xlfn.COUNTIF(E2:E${this.data.length + 1},">1")`,
         textFormula: `=_xlfn.TEXTJOIN(",",TRUE,_xlfn.FILTER(A2:A${
           this.data.length + 1
         },E2:E${this.data.length + 1} > 1))`,

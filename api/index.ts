@@ -1,7 +1,7 @@
 import express from "express";
 import path from "path";
 import bodyParser from "body-parser";
-import { LastStickerScrapper } from "./utils/laststicker.scrapper";
+import { LastStickerScrapper } from "../utils/laststicker.scrapper";
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));

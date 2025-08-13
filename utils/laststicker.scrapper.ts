@@ -1,6 +1,6 @@
 import * as Cheerio from "cheerio";
 import { existsSync, mkdirSync } from "fs";
-import { ScriptArgs } from "../..";
+import { ScriptArgs } from "..";
 import * as fs from "fs";
 import puppeteer from "puppeteer-extra";
 
@@ -15,14 +15,16 @@ import ora, { Ora, spinners } from "ora";
 import Table from "cli-table";
 import { Excel } from "./excel.generator";
 import UserAgent from "user-agents";
-import { connect } from "puppeteer-real-browser";
-import path from "path";
-
+import {
+  getCookies,
+  PuppeteerCookie,
+  getCookiesPromised,
+} from "chrome-cookies-secure";
 const stealth = StealthPlugin();
 
-stealth.enabledEvasions.delete("iframe.contentWindow");
-stealth.enabledEvasions.delete("media.codecs");
-stealth.enabledEvasions.delete("user-agent-override");
+// stealth.enabledEvasions.delete("iframe.contentWindow");
+// stealth.enabledEvasions.delete("media.codecs");
+// stealth.enabledEvasions.delete("user-agent-override");
 puppeteer.use(StealthPlugin());
 puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
 
@@ -66,7 +68,7 @@ export class LastStickerScrapper {
   private static instance: LastStickerScrapper;
   private baseURL = "https://www.laststicker.com";
   url: string;
-  cookies: Cookie[] = [];
+  cookies: PuppeteerCookie[] = [];
   args: ScriptArgs;
   outputName: string;
   sheets: Sheets = {
@@ -122,60 +124,36 @@ export class LastStickerScrapper {
   }
   private async getJSONData() {
     this.spinner.start("Scraping data...");
+
+    const url = "https://www.google.com";
+
+    this.cookies = await this.getCookies();
     const browser = await puppeteer.launch({
+      browserURL: "http://127.0.0.1:9222",
       args: ["--window-size=1920,1080", "--no-sandbox"],
-      // headless: false,
+      headless: false,
       targetFilter: (target) => {
-        if (target.type() === "browser") return true;
-        return !!target.url();
+        if (target.type() === "other" && target.url() === "") {
+          return false;
+        }
+        return true;
       },
     });
 
-    // const page = await browser.newPage();
+    await browser.setCookie(...this.cookies);
+    const page = await browser.newPage();
 
-    const page = (await browser.pages())[0];
-    if (this.args.withAuth) await browser.setCookie(...this.cookies);
-
-    page.setViewport({
-      width: 1920 + Math.floor(Math.random() * 100),
-      height: 3000 + Math.floor(Math.random() * 100),
-      deviceScaleFactor: 1,
-      hasTouch: false,
-      isLandscape: false,
-      isMobile: false,
-    });
-    // await page.setUserAgent(new UserAgent().random().toString());
     // await page.setUserAgent(
     //   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.79 Safari/537.36"
     // );
-    await page.setJavaScriptEnabled(true);
-    page.setDefaultNavigationTimeout(0);
-    await page.setRequestInterception(true);
-    page.on("request", (req) => {
-      if (
-        req.resourceType() == "stylesheet" ||
-        req.resourceType() == "font" ||
-        req.resourceType() == "image"
-      ) {
-        req.abort();
-      } else {
-        req.continue();
-      }
-    });
+    // await page.setUserAgent(new UserAgent().random().toString());
+
     await page.goto(this.url, { waitUntil: "load" });
 
-    try {
-      const hasCloudflare = await page.$$eval("a", (el) => {
-        return !!el.find((el) => el.innerText === "Cloudflare");
-      });
-      if (hasCloudflare) {
-        await new Promise((r) => setTimeout(r, 5000));
-        await page.waitForSelector("#content > h1", {
-          visible: true,
-          timeout: 60000,
-        });
-      }
-    } catch (error) {}
+    await page.waitForSelector("#content > h1", {
+      visible: true,
+      timeout: 60000,
+    });
 
     const rows = await page.$$eval("table#checklist tbody tr", (el) => {
       return el.map((el) => ({ html: el.innerHTML, el }));
@@ -359,6 +337,11 @@ export class LastStickerScrapper {
     await wait(4000);
     this.cookies = await browser.cookies();
     await browser.close();
+  }
+
+  private async getCookies() {
+    const cookies = await getCookiesPromised(this.url, "puppeteer");
+    return cookies;
   }
   async run(args: ScriptArgs) {
     this.args = args;
